@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E1F5FE">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/card_background"
+            android:padding="24dp"
+            android:elevation="4dp">
+
+            <!-- Title -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/set_monthly_budget"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#0288D1"
+                android:gravity="center"
+                android:layout_marginBottom="24dp"/>
+
+            <!-- Budget Amount Input -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:boxStrokeColor="#0288D1"
+                app:hintTextColor="#0288D1"
+                android:layout_marginBottom="24dp">
+
+                <EditText
+                    android:id="@+id/etBudgetAmount"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:hint="@string/enter_budget_amount"
+                    android:inputType="numberDecimal"
+                    android:textColor="#212121"
+                    android:textColorHint="#B3E5FC"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Save Button -->
+            <Button
+                android:id="@+id/btnSaveBudget"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="@string/save_budget"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#0288D1"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_marginTop="8dp"/>
+
+            <!-- Budget Status (Optional) -->
+            <TextView
+                android:id="@+id/tvBudgetStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/current_budget_not_set"
+                android:textColor="#0288D1"
+                android:textSize="16sp"
+                android:gravity="center"
+                android:layout_marginTop="24dp"
+                android:visibility="gone"/>
+
+            <Button
+                android:id="@+id/btnImportExport"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="100dp"
+                android:backgroundTint="#0288D1"
+                android:text="@string/import_and_export"
+                android:textColor="#FFFFFF" />
+
+
+
+
+        </LinearLayout>
+
+    </ScrollView>
+
+    <!-- Bottom Navigation (Same as previous screens) -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="#FFFFFF"
+        app:menu="@menu/bottom_nav_menu"
+        app:itemIconTint="@drawable/nav_item_color_state"
+        app:itemTextColor="@drawable/nav_item_color_state"
+        app:labelVisibilityMode="labeled"
+        app:elevation="8dp"/>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -1,0 +1,85 @@
+<resources>
+    <string name="app_name">Finance Tracker</string>
+    <string name="charts">Charts</string>
+    <string name="add_budget">Add Budget</string>
+    <string name="view_transactions">View Transactions</string>
+    <string name="add_transaction">Add Transaction</string>
+    <string name="budget_usage_0">Budget Usage: 0%</string>
+    <string name="savings_rs_0_00">Savings: Rs. 0.00</string>
+
+    <string name="total_expenses_rs_0_00">Total Expenses: Rs. 0.00</string>
+    <string name="total_income_rs_0_00">Total Income: Rs. 0.00</string>
+    <string name="personal_finance_tracker">Personal Finance Tracker</string>
+
+    <string name="import_data">Import Data</string>
+    <string name="export_data">Export Data</string>
+
+    <string name="save_transaction">Save Transaction</string>
+    <string name="no_date_selected">No date selected</string>
+    <string name="add_new_transaction">Add New Transaction</string>
+    <string name="transaction_title">Transaction Title</string>
+    <string name="amount">Amount</string>
+    <string name="transaction_type">Transaction Type</string>
+    <string name="income">Income</string>
+    <string name="expense">Expense</string>
+    <string name="pick_date">Pick Date</string>
+
+    <string name="set_monthly_budget">Set Monthly Budget</string>
+    <string name="enter_budget_amount">Enter Budget Amount</string>
+    <string name="save_budget">Save Budget</string>
+    <string name="current_budget_not_set">Current Budget: Not Set</string>
+    <string name="import_and_export">Import and Export</string>
+
+    <string name="expense_analytics">Expense Analytics</string>
+    <string name="expense_by_category">Expense by Category</string>
+    <string name="monthly_spending">Monthly Spending</string>
+    <string name="spending_trend">Spending Trend</string>
+
+    <string name="edit_transaction">Edit Transaction</string>
+    <string name="title">Title</string>
+    <string name="amount1">Amount</string>
+    <string name="category">Category</string>
+
+    <string name="transaction_type1">Transaction Type</string>
+    <string name="income1">Income</string>
+    <string name="expense1">Expense</string>
+    <string name="save_changes1">Save Changes</string>
+
+    <string name="month_year">Month Year</string>
+    <string name="previous">Previous</string>
+    <string name="next">Next</string>
+
+    <string name="notifications">Notifications</string>
+    <string name="no_new_notifications">No new notifications</string>
+    <string name="budget_alert">Budget Alert</string>
+    <string name="you_ve_reached_80_of_your_monthly_budget">You\'ve reached 80% of your monthly budget</string>
+    <string name="_2_hours_ago">2 hours ago</string>
+
+    <string name="all_transactions">All Transactions</string>
+
+    <string name="finance_tracker">Finance Tracker</string>
+
+    <string name="_50_of_total_expenses">50% of total expenses</string>
+    <string name="category1">Category</string>
+    <string name="rs_0_00">Rs. 0.00</string>
+    <string name="title1">Title</string>
+
+    <string name="rs_0_001">Rs. 0.00</string>
+    <string name="category2">Category</string>
+    <string name="date">Date</string>
+    <string name="type">Type</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+
+
+    <string-array name="category_array">
+        <item>Food</item>
+        <item>Transport</item>
+        <item>Entertainment</item>
+        <item>Shopping</item>
+        <item>Bills</item>
+        <item>Health</item>
+        <item>Salary</item>
+        <item>Other</item>
+    </string-array>
+</resources>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="primaryDarkBlue">#0288D1</color>
+    <color name="incomeGreen">#4CAF50</color>
+    <color name="expenseRed">#F44336</color>
+    <color name="savingsBlue">#2196F3</color>
+    <color name="textSecondary">#757575</color>
+    <color name="purple">#6200EE</color>
+    <color name="lightBlue">#0288D1</color>
+    <color name="PaleGray">#E1F5FE</color>
+    <color name="Lead">#212121</color>
+    <color name="IntenseBlue">#0288D1</color>
+    <color name="RedOrange">#F44336</color>
+    <color name="whitesmoke">#E1F5FE</color>
+</resources>
+
+
