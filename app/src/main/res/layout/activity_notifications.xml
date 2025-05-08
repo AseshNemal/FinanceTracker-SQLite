@@ -4,43 +4,107 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#E1F5FE">
+    android:background="#F8F9FA">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <com.google.android.material.appbar.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        app:elevation="0dp">
+
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@android:color/transparent"
+            app:title="Notifications"
+            app:titleTextColor="#1A237E"
+            app:titleTextAppearance="@style/TextAppearance.AppCompat.Medium"/>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="56dp">
+        android:layout_marginBottom="56dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvNotifications"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="16dp"
-            android:clipToPadding="false"/>
-
-        <TextView
-            android:id="@+id/tvNoNotifications"
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="No notifications at the moment"
-            android:textSize="18sp"
-            android:textColor="#0288D1"
-            android:visibility="gone"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"/>
+            android:padding="16dp">
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvNotifications"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"
+                android:paddingBottom="8dp"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"/>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardNoNotifications"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="32dp">
+
+                    <ImageView
+                        android:layout_width="72dp"
+                        android:layout_height="72dp"
+                        android:src="@android:drawable/ic_dialog_info"
+                        android:tint="#1A237E"
+                        android:layout_marginBottom="24dp"/>
+
+                    <TextView
+                        android:id="@+id/tvNoNotifications"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="No notifications at the moment"
+                        android:textSize="20sp"
+                        android:textColor="#1A237E"
+                        android:textStyle="bold"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="You're all caught up!"
+                        android:textSize="16sp"
+                        android:textColor="#5C6BC0"
+                        android:layout_marginTop="8dp"/>
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.core.widget.NestedScrollView>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
+        android:background="#FFFFFF"
         app:menu="@menu/bottom_nav_menu"
         app:itemIconTint="@drawable/nav_item_color_state"
         app:itemTextColor="@drawable/nav_item_color_state"
-        app:labelVisibilityMode="labeled" />
+        app:labelVisibilityMode="labeled"
+        app:elevation="8dp"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

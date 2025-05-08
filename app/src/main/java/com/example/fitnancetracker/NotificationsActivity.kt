@@ -7,6 +7,8 @@ import android.view.View
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
+import androidx.cardview.widget.CardView
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -21,21 +23,31 @@ import java.util.*
 
 class NotificationsActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
-    private lateinit var tvNoNotifications: TextView
+    private lateinit var cardNoNotifications: CardView
+    private lateinit var toolbar: Toolbar
     private val viewModel: TransactionViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_notifications)
 
+        setupToolbar()
         setupBottomNavigation()
         initializeViews()
         loadNotifications()
     }
 
+    private fun setupToolbar() {
+        toolbar = findViewById(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        supportActionBar?.setDisplayShowHomeEnabled(true)
+        toolbar.setNavigationOnClickListener { onBackPressed() }
+    }
+
     private fun initializeViews() {
         recyclerView = findViewById(R.id.rvNotifications)
-        tvNoNotifications = findViewById(R.id.tvNoNotifications)
+        cardNoNotifications = findViewById(R.id.cardNoNotifications)
         recyclerView.layoutManager = LinearLayoutManager(this)
     }
 
@@ -99,10 +111,10 @@ class NotificationsActivity : AppCompatActivity() {
 
                 // Update UI
                 if (notifications.isEmpty()) {
-                    tvNoNotifications.visibility = View.VISIBLE
+                    cardNoNotifications.visibility = View.VISIBLE
                     recyclerView.visibility = View.GONE
                 } else {
-                    tvNoNotifications.visibility = View.GONE
+                    cardNoNotifications.visibility = View.GONE
                     recyclerView.visibility = View.VISIBLE
                     recyclerView.adapter = NotificationAdapter(notifications)
                 }
