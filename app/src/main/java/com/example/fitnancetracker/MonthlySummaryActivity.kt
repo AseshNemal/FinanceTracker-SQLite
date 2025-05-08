@@ -22,8 +22,6 @@ import com.github.mikephil.charting.utils.ColorTemplate
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.text.ParseException
-import java.text.SimpleDateFormat
 import java.util.*
 
 class MonthlySummaryActivity : AppCompatActivity() {
@@ -35,7 +33,6 @@ class MonthlySummaryActivity : AppCompatActivity() {
     private lateinit var pieChart: PieChart
     private lateinit var bottomNavigation: BottomNavigationView
     private val viewModel: TransactionViewModel by viewModels()
-    private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -98,28 +95,28 @@ class MonthlySummaryActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 val calendar = Calendar.getInstance()
-                val currentMonth = calendar.get(Calendar.MONTH)
+                val currentMonth = calendar.get(Calendar.MONTH) + 1 // Adding 1 because Calendar.MONTH is 0-based
                 val currentYear = calendar.get(Calendar.YEAR)
 
-                Log.d("MonthlySummary", "Loading data for month: ${currentMonth + 1}, year: $currentYear")
+                Log.d("MonthlySummary", "Loading data for month: $currentMonth, year: $currentYear")
 
                 val transactions = viewModel.allTransactions.first()
                 Log.d("MonthlySummary", "Total transactions loaded: ${transactions.size}")
 
                 val monthlyTransactions = transactions.filter { transaction ->
                     try {
-                        val transactionDate = dateFormat.parse(transaction.date)
-                        if (transactionDate != null) {
-                            val transactionCalendar = Calendar.getInstance().apply { time = transactionDate }
-                            val isCurrentMonth = transactionCalendar.get(Calendar.MONTH) == currentMonth && 
-                                               transactionCalendar.get(Calendar.YEAR) == currentYear
+                        val parts = transaction.date.split("/")
+                        if (parts.size == 3) {
+                            val transactionMonth = parts[1].toInt()
+                            val transactionYear = parts[2].toInt()
+                            val isCurrentMonth = transactionMonth == currentMonth && transactionYear == currentYear
                             Log.d("MonthlySummary", "Transaction date: ${transaction.date}, isCurrentMonth: $isCurrentMonth")
                             isCurrentMonth
                         } else {
-                            Log.e("MonthlySummary", "Failed to parse date: ${transaction.date}")
+                            Log.e("MonthlySummary", "Invalid date format: ${transaction.date}")
                             false
                         }
-                    } catch (e: ParseException) {
+                    } catch (e: Exception) {
                         Log.e("MonthlySummary", "Error parsing date: ${transaction.date}", e)
                         false
                     }

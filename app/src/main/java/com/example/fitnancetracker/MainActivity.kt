@@ -9,10 +9,15 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
+import androidx.lifecycle.lifecycleScope
 import com.example.fitnancetracker.utils.NotificationHelper
+import com.example.fitnancetracker.viewmodel.TransactionViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -25,6 +30,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var budgetProgressBar: ProgressBar
     private lateinit var sharedPrefs: SharedPreferences
     private lateinit var monthlySummaryContainer: LinearLayout
+    private val viewModel: TransactionViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,83 +55,110 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun updateDashboard() {
-        val income = sharedPrefs.getFloat("total_income", 0f)
-        val expense = sharedPrefs.getFloat("total_expense", 0f)
-        val budget = sharedPrefs.getFloat("monthly_budget", 1f) // avoid division by zero
+        lifecycleScope.launch {
+            val incomeTransactions = viewModel.getTransactionsByType("Income").first()
+            val expenseTransactions = viewModel.getTransactionsByType("Expense").first()
+            
+            val income = incomeTransactions.sumOf { it.amount.toDouble() }.toFloat()
+            val expense = expenseTransactions.sumOf { it.amount.toDouble() }.toFloat()
+            val budget = sharedPrefs.getFloat("monthly_budget", 1f) // avoid division by zero
 
-        val savings = income - expense
-        val usagePercent = ((expense / budget) * 100).toInt().coerceAtMost(100)
+            val savings = income - expense
+            val usagePercent = ((expense / budget) * 100).toInt().coerceAtMost(100)
 
-        tvIncome.text = "Total Income: Rs. %.2f".format(income)
-        tvExpense.text = "Total Expenses: Rs. %.2f".format(expense)
-        tvSavings.text = "Savings: Rs. %.2f".format(savings)
-        tvBudgetStatus.text = "Budget Usage: $usagePercent%"
-        budgetProgressBar.progress = usagePercent
+            tvIncome.text = "Total Income: Rs. %.2f".format(income)
+            tvExpense.text = "Total Expenses: Rs. %.2f".format(expense)
+            tvSavings.text = "Savings: Rs. %.2f".format(savings)
+            tvBudgetStatus.text = "Budget Usage: $usagePercent%"
+            budgetProgressBar.progress = usagePercent
+        }
     }
 
     private fun setupMonthlySummary() {
-        monthlySummaryContainer.removeAllViews()
+        lifecycleScope.launch {
+            monthlySummaryContainer.removeAllViews()
 
-        // Get current month and year
-        val calendar = Calendar.getInstance()
-        val monthFormat = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
-        val currentMonth = monthFormat.format(calendar.time)
+            // Get current month and year
+            val calendar = Calendar.getInstance()
+            val monthFormat = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
+            val currentMonth = monthFormat.format(calendar.time)
 
-        // Create summary card
-        val summaryCard = CardView(this).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                setMargins(0, 0, 0, 16)
+            // Get transactions for current month
+            val currentMonthNum = calendar.get(Calendar.MONTH) + 1 // Adding 1 because Calendar.MONTH is 0-based
+            val currentYear = calendar.get(Calendar.YEAR)
+            val monthYear = "$currentMonthNum/$currentYear"
+            
+            val transactions = viewModel.allTransactions.first()
+            val monthlyTransactions = transactions.filter { transaction ->
+                try {
+                    val parts = transaction.date.split("/")
+                    if (parts.size == 3) {
+                        val transactionMonth = parts[1].toInt()
+                        val transactionYear = parts[2].toInt()
+                        transactionMonth == currentMonthNum && transactionYear == currentYear
+                    } else {
+                        false
+                    }
+                } catch (e: Exception) {
+                    false
+                }
             }
-            radius = 16f
-            cardElevation = 4f
-            setContentPadding(16, 16, 16, 16)
-        }
+            
+            val income = monthlyTransactions.filter { it.type == "Income" }.sumOf { it.amount.toDouble() }.toFloat()
+            val expense = monthlyTransactions.filter { it.type == "Expense" }.sumOf { it.amount.toDouble() }.toFloat()
+            val savings = income - expense
+            val budget = sharedPrefs.getFloat("monthly_budget", 0f)
+            val usagePercent = if (budget > 0) ((expense / budget) * 100).toInt() else 0
 
-        val summaryLayout = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            )
-        }
-
-        // Add title
-        val title = TextView(this).apply {
-            text = "Monthly Summary ($currentMonth)"
-            textSize = 18f
-            setTextColor(resources.getColor(R.color.primaryDarkBlue, theme))
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                setMargins(0, 0, 0, 12)
+            // Create summary card
+            val summaryCard = CardView(this@MainActivity).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    setMargins(0, 0, 0, 16)
+                }
+                radius = 16f
+                cardElevation = 4f
+                setContentPadding(16, 16, 16, 16)
             }
+
+            val summaryLayout = LinearLayout(this@MainActivity).apply {
+                orientation = LinearLayout.VERTICAL
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+            }
+
+            // Add title
+            val title = TextView(this@MainActivity).apply {
+                text = "Monthly Summary ($currentMonth)"
+                textSize = 18f
+                setTextColor(resources.getColor(R.color.primaryDarkBlue, theme))
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    setMargins(0, 0, 0, 12)
+                }
+            }
+
+            val incomeItem = createSummaryItem("Income", "Rs. %.2f".format(income), R.color.incomeGreen)
+            val expenseItem = createSummaryItem("Expenses", "Rs. %.2f".format(expense), R.color.expenseRed)
+            val savingsItem = createSummaryItem("Savings", "Rs. %.2f".format(savings),
+                if (savings >= 0) R.color.savingsBlue else R.color.expenseRed)
+            val budgetItem = createSummaryItem("Budget Usage", "$usagePercent%", R.color.primaryDarkBlue)
+
+            summaryLayout.addView(title)
+            summaryLayout.addView(incomeItem)
+            summaryLayout.addView(expenseItem)
+            summaryLayout.addView(savingsItem)
+            summaryLayout.addView(budgetItem)
+
+            summaryCard.addView(summaryLayout)
+            monthlySummaryContainer.addView(summaryCard)
         }
-
-        // Add summary items
-        val income = sharedPrefs.getFloat("total_income", 0f)
-        val expense = sharedPrefs.getFloat("total_expense", 0f)
-        val savings = income - expense
-        val budget = sharedPrefs.getFloat("monthly_budget", 0f)
-        val usagePercent = if (budget > 0) ((expense / budget) * 100).toInt() else 0
-
-        val incomeItem = createSummaryItem("Income", "Rs. %.2f".format(income), R.color.incomeGreen)
-        val expenseItem = createSummaryItem("Expenses", "Rs. %.2f".format(expense), R.color.expenseRed)
-        val savingsItem = createSummaryItem("Savings", "Rs. %.2f".format(savings),
-            if (savings >= 0) R.color.savingsBlue else R.color.expenseRed)
-        val budgetItem = createSummaryItem("Budget Usage", "$usagePercent%", R.color.primaryDarkBlue)
-
-        summaryLayout.addView(title)
-        summaryLayout.addView(incomeItem)
-        summaryLayout.addView(expenseItem)
-        summaryLayout.addView(savingsItem)
-        summaryLayout.addView(budgetItem)
-
-        summaryCard.addView(summaryLayout)
-        monthlySummaryContainer.addView(summaryCard)
     }
 
     private fun createSummaryItem(label: String, value: String, colorRes: Int): LinearLayout {
