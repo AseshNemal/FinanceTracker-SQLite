@@ -2,14 +2,13 @@ package com.example.fitnancetracker
 
 import android.app.DatePickerDialog
 import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.*
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.example.fitnancetracker.model.Transaction
+import com.example.fitnancetracker.viewmodel.TransactionViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import java.util.*
 
 class AddTransactionActivity : AppCompatActivity() {
@@ -21,7 +20,7 @@ class AddTransactionActivity : AppCompatActivity() {
     private lateinit var btnPickDate: Button
     private lateinit var tvSelectedDate: TextView
     private lateinit var btnSave: Button
-    private lateinit var sharedPrefs: SharedPreferences
+    private val viewModel: TransactionViewModel by viewModels()
 
     private var selectedDate: String = ""
     private var selectedCategory: String = ""
@@ -37,7 +36,6 @@ class AddTransactionActivity : AppCompatActivity() {
         btnPickDate = findViewById(R.id.btnPickDate)
         tvSelectedDate = findViewById(R.id.tvSelectedDate)
         btnSave = findViewById(R.id.btnSave)
-        sharedPrefs = getSharedPreferences("FinancePrefs", MODE_PRIVATE)
 
         setupCategorySpinner()
         setupBottomNavigation()
@@ -136,30 +134,7 @@ class AddTransactionActivity : AppCompatActivity() {
             transactionType
         )
 
-        val existingListJson = sharedPrefs.getString("transactions", null)
-        val type = object : TypeToken<MutableList<Transaction>>() {}.type
-        val transactionList: MutableList<Transaction> = if (existingListJson != null) {
-            Gson().fromJson(existingListJson, type)
-        } else {
-            mutableListOf()
-        }
-
-        transactionList.add(newTransaction)
-
-        val updatedJson = Gson().toJson(transactionList)
-        val editor = sharedPrefs.edit()
-        editor.putString("transactions", updatedJson)
-
-        if (isIncome) {
-            val currentIncome = sharedPrefs.getFloat("total_income", 0f)
-            editor.putFloat("total_income", currentIncome + amount)
-        } else {
-            val currentExpense = sharedPrefs.getFloat("total_expense", 0f)
-            editor.putFloat("total_expense", currentExpense + amount)
-        }
-
-        editor.apply()
-
+        viewModel.insert(newTransaction)
         Toast.makeText(this, "Transaction Saved!", Toast.LENGTH_SHORT).show()
         finish()
     }

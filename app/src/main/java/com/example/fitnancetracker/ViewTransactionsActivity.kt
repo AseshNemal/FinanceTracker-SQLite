@@ -1,27 +1,26 @@
 package com.example.fitnancetracker
 
-
-import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.fitnancetracker.adapter.TransactionAdapter
 import com.example.fitnancetracker.model.Transaction
+import com.example.fitnancetracker.viewmodel.TransactionViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 class ViewTransactionsActivity : AppCompatActivity() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var adapter: TransactionAdapter
-    private lateinit var sharedPrefs: SharedPreferences
-    private lateinit var transactionList: MutableList<Transaction>
+    private val viewModel: TransactionViewModel by viewModels()
+    private var transactionList: MutableList<Transaction> = mutableListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,63 +28,50 @@ class ViewTransactionsActivity : AppCompatActivity() {
 
         setupBottomNavigation()
 
-        sharedPrefs = getSharedPreferences("FinancePrefs", Context.MODE_PRIVATE)
         recyclerView = findViewById(R.id.transactionRecyclerView)
-
-        transactionList = loadTransactions()
-
-        adapter = TransactionAdapter(transactionList,
+        adapter = TransactionAdapter(
+            transactionList,
             onDelete = { position -> deleteTransaction(position) },
             onEdit = { position -> editTransaction(position) }
         )
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = adapter
+
+        observeTransactions()
     }
 
-    private fun loadTransactions(): MutableList<Transaction> {
-        val json = sharedPrefs.getString("transactions", null)
-        return if (json != null) {
-            val type = object : TypeToken<MutableList<Transaction>>() {}.type
-            Gson().fromJson(json, type)
-        } else mutableListOf()
+    private fun observeTransactions() {
+        lifecycleScope.launch {
+            viewModel.allTransactions.collectLatest { transactions ->
+                transactionList.clear()
+                transactionList.addAll(transactions)
+                adapter.notifyDataSetChanged()
+            }
+        }
     }
 
     private fun deleteTransaction(position: Int) {
-        transactionList.removeAt(position)
-        saveTransactions()
-        adapter.notifyItemRemoved(position)
+        val transaction = transactionList[position]
+        viewModel.delete(transaction)
         Toast.makeText(this, "Transaction deleted", Toast.LENGTH_SHORT).show()
     }
 
     private fun editTransaction(position: Int) {
         val transaction = transactionList[position]
         val intent = Intent(this, EditTransactionActivity::class.java)
-        intent.putExtra("transaction_index", position)
-        intent.putExtra("transaction_data", Gson().toJson(transaction))
+        intent.putExtra("transaction_id", transaction.id)
         startActivity(intent)
-    }
-
-    private fun saveTransactions() {
-        val json = Gson().toJson(transactionList)
-        sharedPrefs.edit().putString("transactions", json).apply()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        transactionList.clear()
-        transactionList.addAll(loadTransactions())
-        adapter.notifyDataSetChanged()
     }
 
     private fun setupBottomNavigation() {
         findViewById<BottomNavigationView>(R.id.bottom_navigation).setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
-                R.id.nav_home ->  {
+                R.id.nav_home -> {
                     startActivity(Intent(this, MainActivity::class.java))
                     true
                 }
-                R.id.nav_dashboard ->  {
+                R.id.nav_dashboard -> {
                     startActivity(Intent(this, MonthlySummaryActivity::class.java))
                     true
                 }

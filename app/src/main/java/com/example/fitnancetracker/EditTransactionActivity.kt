@@ -1,14 +1,16 @@
 package com.example.fitnancetracker
 
 import android.content.Intent
-import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.*
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.fitnancetracker.model.Transaction
+import com.example.fitnancetracker.viewmodel.TransactionViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 class EditTransactionActivity : AppCompatActivity() {
 
@@ -17,11 +19,9 @@ class EditTransactionActivity : AppCompatActivity() {
     private lateinit var spinnerCategory: Spinner
     private lateinit var rgType: RadioGroup
     private lateinit var btnSave: Button
-    private lateinit var sharedPrefs: SharedPreferences
+    private val viewModel: TransactionViewModel by viewModels()
 
-    private var transactionIndex: Int = -1
-    private var transactions: MutableList<Transaction> = mutableListOf()
-
+    private var transactionId: String = ""
     private val categoryOptions = arrayOf("Food", "Transport", "Shopping", "Salary", "Entertainment", "Other")
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,12 +35,11 @@ class EditTransactionActivity : AppCompatActivity() {
         spinnerCategory = findViewById(R.id.editSpinnerCategory)
         rgType = findViewById(R.id.editType)
         btnSave = findViewById(R.id.btnSaveChanges)
-        sharedPrefs = getSharedPreferences("FinancePrefs", MODE_PRIVATE)
 
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, categoryOptions)
         spinnerCategory.adapter = adapter
 
-        transactionIndex = intent.getIntExtra("transaction_index", -1)
+        transactionId = intent.getStringExtra("transaction_id") ?: ""
         loadTransaction()
 
         btnSave.setOnClickListener {
@@ -49,24 +48,23 @@ class EditTransactionActivity : AppCompatActivity() {
     }
 
     private fun loadTransaction() {
-        val json = sharedPrefs.getString("transactions", null)
-        val type = object : TypeToken<MutableList<Transaction>>() {}.type
-        transactions = if (json != null) Gson().fromJson(json, type) else mutableListOf()
+        lifecycleScope.launch {
+            val transactions = viewModel.allTransactions.first()
+            val transaction = transactions.find { it.id == transactionId }
+            transaction?.let {
+                etTitle.setText(it.title)
+                etAmount.setText(it.amount.toString())
 
-        if (transactionIndex != -1) {
-            val txn = transactions[transactionIndex]
-            etTitle.setText(txn.title)
-            etAmount.setText(txn.amount.toString())
+                val categoryIndex = categoryOptions.indexOf(it.category)
+                if (categoryIndex >= 0) {
+                    spinnerCategory.setSelection(categoryIndex)
+                }
 
-            val categoryIndex = categoryOptions.indexOf(txn.category)
-            if (categoryIndex >= 0) {
-                spinnerCategory.setSelection(categoryIndex)
-            }
-
-            if (txn.type == "Income") {
-                rgType.check(R.id.rbIncome)
-            } else {
-                rgType.check(R.id.rbExpense)
+                if (it.type == "Income") {
+                    rgType.check(R.id.rbIncome)
+                } else {
+                    rgType.check(R.id.rbExpense)
+                }
             }
         }
     }
@@ -82,17 +80,21 @@ class EditTransactionActivity : AppCompatActivity() {
             return
         }
 
-        val original = transactions[transactionIndex]
-        transactions[transactionIndex] = original.copy(
-            title = title,
-            amount = amount,
-            category = category,
-            type = type
-        )
-
-        sharedPrefs.edit().putString("transactions", Gson().toJson(transactions)).apply()
-        Toast.makeText(this, "Transaction Updated!", Toast.LENGTH_SHORT).show()
-        finish()
+        lifecycleScope.launch {
+            val transactions = viewModel.allTransactions.first()
+            val original = transactions.find { it.id == transactionId }
+            original?.let {
+                val updatedTransaction = it.copy(
+                    title = title,
+                    amount = amount,
+                    category = category,
+                    type = type
+                )
+                viewModel.update(updatedTransaction)
+                Toast.makeText(this@EditTransactionActivity, "Transaction Updated!", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+        }
     }
 
     private fun setupBottomNavigation() {

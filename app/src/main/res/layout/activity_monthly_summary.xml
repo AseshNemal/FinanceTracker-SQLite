@@ -6,79 +6,83 @@
     android:layout_height="match_parent"
     android:background="#E1F5FE">
 
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true"
-        android:padding="16dp">
+        android:layout_marginBottom="56dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:background="@drawable/card_background"
-            android:padding="24dp"
-            android:elevation="4dp">
+            android:padding="16dp">
 
-            <!-- Month/Year Header -->
             <TextView
-                android:id="@+id/tvMonthYear"
+                android:id="@+id/tvTotalIncome"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/month_year"
-                android:textSize="20sp"
-                android:textStyle="bold"
+                android:text="@string/total_income_rs_0_00"
+                android:textSize="18sp"
                 android:textColor="#0288D1"
-                android:gravity="center"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/tvTotalExpense"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/total_expenses_rs_0_00"
+                android:textSize="18sp"
+                android:textColor="#0288D1"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/tvSavings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/savings_rs_0_00"
+                android:textSize="18sp"
+                android:textColor="#0288D1"
+                android:layout_marginBottom="8dp"/>
+
+            <TextView
+                android:id="@+id/tvBudgetUsage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/budget_usage_0"
+                android:textSize="18sp"
+                android:textColor="#0288D1"
                 android:layout_marginBottom="16dp"/>
 
-            <!-- Month Navigation -->
-            <LinearLayout
+            <com.github.mikephil.charting.charts.PieChart
+                android:id="@+id/pieChart"
+                android:layout_width="match_parent"
+                android:layout_height="300dp"
+                android:layout_marginBottom="16dp"/>
+
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:layout_marginBottom="16dp">
+                android:text="Category-wise Breakdown"
+                android:textSize="18sp"
+                android:textColor="#212121"
+                android:layout_marginBottom="8dp"/>
 
-                <Button
-                    android:id="@+id/btnPrevMonth"
-                    android:layout_width="wrap_content"
-                    android:layout_height="48dp"
-                    android:text="@string/previous"
-                    android:textColor="#0288D1"
-                    android:backgroundTint="#E1F5FE"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
-
-                <Button
-                    android:id="@+id/btnNextMonth"
-                    android:layout_width="wrap_content"
-                    android:layout_height="48dp"
-                    android:text="@string/next"
-                    android:textColor="#FFFFFF"
-                    android:backgroundTint="#0288D1"
-                    android:layout_marginStart="16dp"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
-            </LinearLayout>
-
-            <!-- Category Summary -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvCategorySummary"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:clipToPadding="false"/>
-        </LinearLayout>
-    </ScrollView>
+                android:layout_height="wrap_content"/>
 
-    <!-- Bottom Navigation (Consistent with other screens) -->
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottom_navigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
-        android:background="#FFFFFF"
         app:menu="@menu/bottom_nav_menu"
         app:itemIconTint="@drawable/nav_item_color_state"
         app:itemTextColor="@drawable/nav_item_color_state"
-        app:labelVisibilityMode="labeled"
-        app:elevation="8dp"/>
+        app:labelVisibilityMode="labeled" />
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

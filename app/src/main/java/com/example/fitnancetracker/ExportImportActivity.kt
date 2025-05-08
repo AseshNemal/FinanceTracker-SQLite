@@ -2,16 +2,20 @@ package com.example.fitnancetracker
 
 import android.app.Activity
 import android.content.Intent
-import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.widget.Button
 import android.widget.Toast
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.fitnancetracker.model.Transaction
+import com.example.fitnancetracker.viewmodel.TransactionViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import java.io.*
 import java.nio.charset.StandardCharsets
 
@@ -19,7 +23,7 @@ class ExportImportActivity : AppCompatActivity() {
 
     private lateinit var btnExport: Button
     private lateinit var btnImport: Button
-    private lateinit var sharedPrefs: SharedPreferences
+    private val viewModel: TransactionViewModel by viewModels()
     private val gson = Gson()
 
     private val EXPORT_REQUEST_CODE = 1001
@@ -31,7 +35,6 @@ class ExportImportActivity : AppCompatActivity() {
 
         btnExport = findViewById(R.id.btnExport)
         btnImport = findViewById(R.id.btnImport)
-        sharedPrefs = getSharedPreferences("FinancePrefs", MODE_PRIVATE)
 
         btnExport.setOnClickListener { exportData() }
         btnImport.setOnClickListener { importData() }
@@ -40,18 +43,21 @@ class ExportImportActivity : AppCompatActivity() {
     }
 
     private fun exportData() {
-        val transactionsJson = sharedPrefs.getString("transactions", null)
-        if (transactionsJson.isNullOrEmpty()) {
-            Toast.makeText(this, "No data to export", Toast.LENGTH_SHORT).show()
-            return
-        }
+        lifecycleScope.launch {
+            val transactions = viewModel.allTransactions.first()
+            if (transactions.isEmpty()) {
+                Toast.makeText(this@ExportImportActivity, "No data to export", Toast.LENGTH_SHORT).show()
+                return@launch
+            }
 
-        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-            addCategory(Intent.CATEGORY_OPENABLE)
-            type = "application/txt"
-            putExtra(Intent.EXTRA_TITLE, "transactions_backup.txt")
+            val transactionsJson = gson.toJson(transactions)
+            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "application/txt"
+                putExtra(Intent.EXTRA_TITLE, "transactions_backup.txt")
+            }
+            startActivityForResult(intent, EXPORT_REQUEST_CODE)
         }
-        startActivityForResult(intent, EXPORT_REQUEST_CODE)
     }
 
     private fun importData() {
@@ -70,15 +76,18 @@ class ExportImportActivity : AppCompatActivity() {
 
         when (requestCode) {
             EXPORT_REQUEST_CODE -> {
-                val transactionsJson = sharedPrefs.getString("transactions", null)
-                try {
-                    contentResolver.openOutputStream(uri)?.use { outputStream ->
-                        outputStream.write(transactionsJson?.toByteArray(StandardCharsets.UTF_8))
-                        Toast.makeText(this, "Data exported successfully", Toast.LENGTH_SHORT).show()
+                lifecycleScope.launch {
+                    val transactions = viewModel.allTransactions.first()
+                    val transactionsJson = gson.toJson(transactions)
+                    try {
+                        contentResolver.openOutputStream(uri)?.use { outputStream ->
+                            outputStream.write(transactionsJson.toByteArray(StandardCharsets.UTF_8))
+                            Toast.makeText(this@ExportImportActivity, "Data exported successfully", Toast.LENGTH_SHORT).show()
+                        }
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                        Toast.makeText(this@ExportImportActivity, "Failed to export data", Toast.LENGTH_SHORT).show()
                     }
-                } catch (e: IOException) {
-                    e.printStackTrace()
-                    Toast.makeText(this, "Failed to export data", Toast.LENGTH_SHORT).show()
                 }
             }
 
@@ -88,36 +97,26 @@ class ExportImportActivity : AppCompatActivity() {
                         val reader = BufferedReader(InputStreamReader(inputStream, StandardCharsets.UTF_8))
                         val importedJson = reader.readText()
 
-                        val type = object : TypeToken<MutableList<Transaction>>() {}.type
-                        val importedList: MutableList<Transaction> = gson.fromJson(importedJson, type)
+                        val type = object : TypeToken<List<Transaction>>() {}.type
+                        val importedList: List<Transaction> = gson.fromJson(importedJson, type)
 
-                        val existingJson = sharedPrefs.getString("transactions", null)
-                        val existingList: MutableList<Transaction> = if (existingJson != null) {
-                            gson.fromJson(existingJson, type)
-                        } else {
-                            mutableListOf()
+                        lifecycleScope.launch {
+                            importedList.forEach { transaction ->
+                                viewModel.insert(transaction)
+                            }
+                            Toast.makeText(this@ExportImportActivity, "Data imported successfully", Toast.LENGTH_SHORT).show()
                         }
-
-                        existingList.addAll(importedList)
-                        val updatedJson = gson.toJson(existingList)
-
-                        sharedPrefs.edit().putString("transactions", updatedJson).apply()
-                        Toast.makeText(this, "Data imported successfully", Toast.LENGTH_SHORT).show()
                     }
                 } catch (e: IOException) {
                     e.printStackTrace()
-                    Toast.makeText(this, "Failed to import data", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@ExportImportActivity, "Failed to import data", Toast.LENGTH_SHORT).show()
                 }
             }
         }
     }
 
     private fun setupBottomNavigation() {
-        val bottomNavigationView: BottomNavigationView = findViewById(R.id.bottom_navigation)
-        bottomNavigationView.selectedItemId = R.id.nav_Settings
-
-        val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
-        bottomNav.setOnNavigationItemSelectedListener { item ->
+        findViewById<BottomNavigationView>(R.id.bottom_navigation).setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_home -> {
                     startActivity(Intent(this, MainActivity::class.java))
