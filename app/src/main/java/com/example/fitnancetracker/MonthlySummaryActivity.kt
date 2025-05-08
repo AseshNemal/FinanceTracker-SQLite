@@ -1,8 +1,10 @@
 package com.example.fitnancetracker
 
+import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -22,6 +24,7 @@ import com.github.mikephil.charting.utils.ColorTemplate
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.util.*
 
 class MonthlySummaryActivity : AppCompatActivity() {
@@ -29,10 +32,15 @@ class MonthlySummaryActivity : AppCompatActivity() {
     private lateinit var tvTotalExpense: TextView
     private lateinit var tvSavings: TextView
     private lateinit var tvBudgetUsage: TextView
+    private lateinit var tvCurrentMonth: TextView
+    private lateinit var btnPreviousMonth: ImageButton
+    private lateinit var btnNextMonth: ImageButton
     private lateinit var rvCategorySummary: RecyclerView
     private lateinit var pieChart: PieChart
     private lateinit var bottomNavigation: BottomNavigationView
     private val viewModel: TransactionViewModel by viewModels()
+
+    private var selectedMonth: Calendar = Calendar.getInstance()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,6 +51,7 @@ class MonthlySummaryActivity : AppCompatActivity() {
             setupRecyclerView()
             setupPieChart()
             setupBottomNavigation()
+            setupMonthNavigation()
             loadMonthlyData()
         } catch (e: Exception) {
             Log.e("MonthlySummary", "Error in onCreate: ${e.message}", e)
@@ -56,6 +65,9 @@ class MonthlySummaryActivity : AppCompatActivity() {
             tvTotalExpense = findViewById(R.id.tvTotalExpense)
             tvSavings = findViewById(R.id.tvSavings)
             tvBudgetUsage = findViewById(R.id.tvBudgetUsage)
+            tvCurrentMonth = findViewById(R.id.tvCurrentMonth)
+            btnPreviousMonth = findViewById(R.id.btnPreviousMonth)
+            btnNextMonth = findViewById(R.id.btnNextMonth)
             rvCategorySummary = findViewById(R.id.rvCategorySummary)
             pieChart = findViewById(R.id.pieChart)
             bottomNavigation = findViewById(R.id.bottom_navigation)
@@ -69,6 +81,27 @@ class MonthlySummaryActivity : AppCompatActivity() {
             Log.e("MonthlySummary", "Error initializing views: ${e.message}", e)
             throw e
         }
+    }
+
+    private fun setupMonthNavigation() {
+        btnPreviousMonth.setOnClickListener {
+            selectedMonth.add(Calendar.MONTH, -1)
+            updateMonthDisplay()
+            loadMonthlyData()
+        }
+
+        btnNextMonth.setOnClickListener {
+            selectedMonth.add(Calendar.MONTH, 1)
+            updateMonthDisplay()
+            loadMonthlyData()
+        }
+
+        updateMonthDisplay()
+    }
+
+    private fun updateMonthDisplay() {
+        val monthFormat = SimpleDateFormat("MMMM yyyy", Locale.getDefault())
+        tvCurrentMonth.text = monthFormat.format(selectedMonth.time)
     }
 
     private fun setupRecyclerView() {
@@ -94,9 +127,8 @@ class MonthlySummaryActivity : AppCompatActivity() {
     private fun loadMonthlyData() {
         lifecycleScope.launch {
             try {
-                val calendar = Calendar.getInstance()
-                val currentMonth = calendar.get(Calendar.MONTH) + 1 // Adding 1 because Calendar.MONTH is 0-based
-                val currentYear = calendar.get(Calendar.YEAR)
+                val currentMonth = selectedMonth.get(Calendar.MONTH) + 1 // Adding 1 because Calendar.MONTH is 0-based
+                val currentYear = selectedMonth.get(Calendar.YEAR)
 
                 Log.d("MonthlySummary", "Loading data for month: $currentMonth, year: $currentYear")
 
@@ -144,6 +176,11 @@ class MonthlySummaryActivity : AppCompatActivity() {
 
                 // Update pie chart
                 updatePieChart(categorySummaries)
+
+                // Update budget usage
+                val budget = viewModel.getMonthlyBudget().first() ?: 0f
+                val usagePercent = if (budget > 0) ((totalExpense / budget) * 100).toInt() else 0
+                tvBudgetUsage.text = "Budget Usage: $usagePercent%"
             } catch (e: Exception) {
                 Log.e("MonthlySummary", "Error loading monthly data: ${e.message}", e)
                 Toast.makeText(this@MonthlySummaryActivity, "Error loading data", Toast.LENGTH_SHORT).show()
@@ -207,30 +244,37 @@ class MonthlySummaryActivity : AppCompatActivity() {
 
     private fun setupBottomNavigation() {
         try {
+            bottomNavigation.selectedItemId = R.id.nav_dashboard
             bottomNavigation.setOnItemSelectedListener { item ->
                 when (item.itemId) {
                     R.id.nav_home -> {
-                        startActivity(android.content.Intent(this, MainActivity::class.java))
+                        startActivity(Intent(this, MainActivity::class.java))
+                        finish()
                         true
                     }
                     R.id.nav_dashboard -> {
-                        startActivity(android.content.Intent(this, MonthlySummaryActivity::class.java))
                         true
                     }
                     R.id.nav_notifications -> {
-                        startActivity(android.content.Intent(this, NotificationsActivity::class.java))
+                        startActivity(Intent(this, NotificationsActivity::class.java))
+                        finish()
                         true
                     }
                     R.id.nav_Settings -> {
-                        startActivity(android.content.Intent(this, BudgetActivity::class.java))
+                        startActivity(Intent(this, BudgetActivity::class.java))
+                        finish()
                         true
                     }
                     else -> false
                 }
             }
-            bottomNavigation.selectedItemId = R.id.nav_dashboard
         } catch (e: Exception) {
             Log.e("MonthlySummary", "Error setting up bottom navigation: ${e.message}", e)
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        loadMonthlyData()
     }
 }

@@ -28,7 +28,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tvSavings: TextView
     private lateinit var tvBudgetStatus: TextView
     private lateinit var budgetProgressBar: ProgressBar
-    private lateinit var sharedPrefs: SharedPreferences
     private lateinit var monthlySummaryContainer: LinearLayout
     private val viewModel: TransactionViewModel by viewModels()
 
@@ -44,7 +43,6 @@ class MainActivity : AppCompatActivity() {
         tvBudgetStatus = findViewById(R.id.tvBudgetStatus)
         budgetProgressBar = findViewById(R.id.budgetProgressBar)
         monthlySummaryContainer = findViewById(R.id.monthlySummaryContainer)
-        sharedPrefs = getSharedPreferences("FinancePrefs", Context.MODE_PRIVATE)
 
         updateDashboard()
         setupButtonListeners()
@@ -58,11 +56,10 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val incomeTransactions = viewModel.getTransactionsByType("Income").first()
             val expenseTransactions = viewModel.getTransactionsByType("Expense").first()
+            val budget = viewModel.getMonthlyBudget().first() ?: 1f // avoid division by zero
             
             val income = incomeTransactions.sumOf { it.amount.toDouble() }.toFloat()
             val expense = expenseTransactions.sumOf { it.amount.toDouble() }.toFloat()
-            val budget = sharedPrefs.getFloat("monthly_budget", 1f) // avoid division by zero
-
             val savings = income - expense
             val usagePercent = ((expense / budget) * 100).toInt().coerceAtMost(100)
 
@@ -107,7 +104,7 @@ class MainActivity : AppCompatActivity() {
             val income = monthlyTransactions.filter { it.type == "Income" }.sumOf { it.amount.toDouble() }.toFloat()
             val expense = monthlyTransactions.filter { it.type == "Expense" }.sumOf { it.amount.toDouble() }.toFloat()
             val savings = income - expense
-            val budget = sharedPrefs.getFloat("monthly_budget", 0f)
+            val budget = viewModel.getMonthlyBudget().first() ?: 0f
             val usagePercent = if (budget > 0) ((expense / budget) * 100).toInt() else 0
 
             // Create summary card
@@ -244,15 +241,34 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun checkBudgetExceeded() {
-        val budget = sharedPrefs.getFloat("monthly_budget", 0f)
-        val expenses = sharedPrefs.getFloat("total_expense", 0f)
-
-        if (budget > 0 && expenses > budget) {
-            NotificationHelper.showNotification(
-                this,
-                "Budget Alert!",
-                "You've exceeded your monthly budget!"
-            )
+        lifecycleScope.launch {
+            val currentMonth = Calendar.getInstance().get(Calendar.MONTH) + 1
+            val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+            
+            val monthlyExpenses = viewModel.getTransactionsByType("Expense").first()
+                .filter { transaction ->
+                    try {
+                        val parts = transaction.date.split("/")
+                        if (parts.size == 3) {
+                            val transactionMonth = parts[1].toInt()
+                            val transactionYear = parts[2].toInt()
+                            transactionMonth == currentMonth && transactionYear == currentYear
+                        } else false
+                    } catch (e: Exception) {
+                        false
+                    }
+                }
+                .sumOf { it.amount.toDouble() }.toFloat()
+            
+            val budget = viewModel.getMonthlyBudget().first() ?: 0f
+            
+            if (budget > 0 && monthlyExpenses > budget) {
+                NotificationHelper.showNotification(
+                    this@MainActivity,
+                    "Budget Alert!",
+                    "You've exceeded your monthly budget by Rs. %.2f".format(monthlyExpenses - budget)
+                )
+            }
         }
     }
 

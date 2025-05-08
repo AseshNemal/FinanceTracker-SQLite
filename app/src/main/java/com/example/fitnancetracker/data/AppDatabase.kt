@@ -4,9 +4,10 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.example.fitnancetracker.model.Budget
 import com.example.fitnancetracker.model.Transaction
 
-@Database(entities = [Transaction::class], version = 1)
+@Database(entities = [Transaction::class, Budget::class], version = 2)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun transactionDao(): TransactionDao
 
@@ -20,7 +21,9 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "finance_database"
-                ).build()
+                )
+                .fallbackToDestructiveMigration() // This will recreate tables if schema changes
+                .build()
                 INSTANCE = instance
                 instance
             }

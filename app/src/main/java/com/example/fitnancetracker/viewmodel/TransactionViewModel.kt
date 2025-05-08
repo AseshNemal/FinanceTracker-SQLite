@@ -5,8 +5,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fitnancetracker.data.AppDatabase
 import com.example.fitnancetracker.data.TransactionRepository
+import com.example.fitnancetracker.model.Budget
 import com.example.fitnancetracker.model.Transaction
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class TransactionViewModel(application: Application) : AndroidViewModel(application) {
@@ -37,5 +39,14 @@ class TransactionViewModel(application: Application) : AndroidViewModel(applicat
 
     fun getTransactionsForMonth(monthYear: String): Flow<List<Transaction>> {
         return repository.getTransactionsForMonth(monthYear)
+    }
+
+    // Budget operations
+    fun getMonthlyBudget(): Flow<Float> {
+        return repository.getBudget().map { it?.amount ?: 0f }
+    }
+
+    fun setMonthlyBudget(amount: Float) = viewModelScope.launch {
+        repository.insertBudget(Budget(amount = amount))
     }
 } 

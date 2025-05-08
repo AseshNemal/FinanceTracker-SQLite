@@ -1,13 +1,14 @@
 package com.example.fitnancetracker
 
-
-import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.fitnancetracker.model.Transaction
+import com.example.fitnancetracker.viewmodel.TransactionViewModel
 import com.github.mikephil.charting.charts.BarChart
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.charts.PieChart
@@ -15,9 +16,10 @@ import com.github.mikephil.charting.components.Description
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
+import com.github.mikephil.charting.utils.ColorTemplate
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -26,26 +28,29 @@ class ChartsActivity : AppCompatActivity() {
     private lateinit var pieChart: PieChart
     private lateinit var barChart: BarChart
     private lateinit var lineChart: LineChart
-    private lateinit var sharedPrefs: SharedPreferences
-    private lateinit var transactionList: List<Transaction>
+    private val viewModel: TransactionViewModel by viewModels()
 
     private fun setupBottomNavigation() {
         findViewById<BottomNavigationView>(R.id.bottom_navigation).setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.nav_home ->  {
                     startActivity(Intent(this, MainActivity::class.java))
+                    finish()
                     true
                 }
                 R.id.nav_dashboard ->  {
                     startActivity(Intent(this, MonthlySummaryActivity::class.java))
+                    finish()
                     true
                 }
                 R.id.nav_notifications -> {
                     startActivity(Intent(this, NotificationsActivity::class.java))
+                    finish()
                     true
                 }
                 R.id.nav_Settings -> {
                     startActivity(Intent(this, BudgetActivity::class.java))
+                    finish()
                     true
                 }
                 else -> false
@@ -62,120 +67,182 @@ class ChartsActivity : AppCompatActivity() {
         pieChart = findViewById(R.id.pieChart)
         barChart = findViewById(R.id.barChart)
         lineChart = findViewById(R.id.lineChart)
-        sharedPrefs = getSharedPreferences("FinancePrefs", Context.MODE_PRIVATE)
 
-        loadTransactions()
-        showPieChart()
-        showBarChart()
-        showLineChart()
+        setupCharts()
+        loadAndDisplayData()
     }
 
-    private fun loadTransactions() {
-        val json = sharedPrefs.getString("transactions", null)
-        transactionList = if (json != null) {
-            val type = object : TypeToken<List<Transaction>>() {}.type
-            Gson().fromJson(json, type)
-        } else {
-            listOf()
-        }
-    }
-
-    private fun showPieChart() {
-        val income = transactionList.filter { it.type == "Income" }.sumOf { it.amount.toDouble() }
-        val expense = transactionList.filter { it.type == "Expense" }.sumOf { it.amount.toDouble() }
-
-        val entries = listOf(
-            PieEntry(income.toFloat(), "Income"),
-            PieEntry(expense.toFloat(), "Expense")
-        )
-
-        val dataSet = PieDataSet(entries, "Income vs Expense").apply {
-            colors = listOf(Color.GREEN, Color.RED)
-            valueTextSize = 16f
-        }
-
+    private fun setupCharts() {
+        // Setup Pie Chart
         pieChart.apply {
-            data = PieData(dataSet)
-            description = Description().apply { text = "Overview" }
-            animateY(1000)
-            invalidate()
-        }
-    }
-
-    private fun showBarChart() {
-        val categoryTotals = transactionList
-            .filter { it.type == "Expense" }
-            .groupBy { it.category }
-            .mapValues { entry -> entry.value.sumOf { it.amount.toDouble() } }
-
-        val entries = categoryTotals.entries.mapIndexed { index, entry ->
-            BarEntry(index.toFloat(), entry.value.toFloat())
+            description.isEnabled = false
+            isDrawHoleEnabled = true
+            setHoleColor(Color.WHITE)
+            setTransparentCircleRadius(61f)
+            setDrawCenterText(true)
+            rotationAngle = 0f
+            isRotationEnabled = true
+            isHighlightPerTapEnabled = true
+            legend.isEnabled = true
+            setEntryLabelColor(Color.WHITE)
+            setEntryLabelTextSize(12f)
         }
 
-        val dataSet = BarDataSet(entries, "Expenses by Category").apply {
-            color = Color.BLUE
-            valueTextSize = 12f
-        }
-
-        val labels = categoryTotals.keys.toList()
-
+        // Setup Bar Chart
         barChart.apply {
-            data = BarData(dataSet)
+            description.isEnabled = false
+            legend.isEnabled = true
+            setDrawGridBackground(false)
+            setDrawBarShadow(false)
+            setScaleEnabled(true)
+            setPinchZoom(false)
+            setDrawValueAboveBar(true)
             xAxis.apply {
-                valueFormatter = IndexAxisValueFormatter(labels)
                 position = XAxis.XAxisPosition.BOTTOM
                 granularity = 1f
                 setDrawGridLines(false)
             }
-            axisLeft.axisMinimum = 0f
-            axisRight.isEnabled = false
-            description = Description().apply { text = "Expenses by Category" }
-            animateY(1000)
-            invalidate()
-        }
-    }
-
-    private fun showLineChart() {
-        val inputDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault())
-        val outputDateFormat = SimpleDateFormat("MMM dd", Locale.getDefault())
-
-        val groupedByDate = transactionList.groupBy {
-            val date = try {
-                inputDateFormat.parse(it.date)
-            } catch (e: Exception) {
-                null
+            axisLeft.apply {
+                setDrawGridLines(true)
+                axisMinimum = 0f
             }
-            outputDateFormat.format(date ?: Date())
+            axisRight.isEnabled = false
         }
 
-        val sortedDates = groupedByDate.keys.sorted()
-        val entries = sortedDates.mapIndexed { index, date ->
-            val totalAmount = groupedByDate[date]?.sumOf { it.amount.toDouble() } ?: 0.0
-            Entry(index.toFloat(), totalAmount.toFloat())
-        }
-
-        val lineDataSet = LineDataSet(entries, "Daily Transactions").apply {
-            color = Color.MAGENTA
-            valueTextSize = 12f
-            setDrawCircles(true)
-            circleRadius = 4f
-            setDrawValues(false)
-        }
-
+        // Setup Line Chart
         lineChart.apply {
-            data = LineData(lineDataSet)
+            description.isEnabled = false
+            legend.isEnabled = true
+            setDrawGridBackground(false)
+            setDrawBorders(false)
+            setScaleEnabled(true)
+            setPinchZoom(false)
             xAxis.apply {
-                valueFormatter = IndexAxisValueFormatter(sortedDates)
                 position = XAxis.XAxisPosition.BOTTOM
                 granularity = 1f
                 setDrawGridLines(false)
                 labelRotationAngle = -45f
             }
-            axisLeft.axisMinimum = 0f
+            axisLeft.apply {
+                setDrawGridLines(true)
+                axisMinimum = 0f
+            }
             axisRight.isEnabled = false
-            description = Description().apply { text = "Daily Transactions" }
-            animateX(1000)
-            invalidate()
         }
+    }
+
+    private fun loadAndDisplayData() {
+        lifecycleScope.launch {
+            try {
+                val transactions = viewModel.allTransactions.first()
+                showPieChart(transactions)
+                showBarChart(transactions)
+                showLineChart(transactions)
+            } catch (e: Exception) {
+                Log.e("ChartsActivity", "Error loading data: ${e.message}", e)
+            }
+        }
+    }
+
+    private fun showPieChart(transactions: List<Transaction>) {
+        try {
+            val income = transactions.filter { it.type == "Income" }.sumOf { it.amount.toDouble() }
+            val expense = transactions.filter { it.type == "Expense" }.sumOf { it.amount.toDouble() }
+
+            val entries = listOf(
+                PieEntry(income.toFloat(), "Income"),
+                PieEntry(expense.toFloat(), "Expense")
+            )
+
+            val dataSet = PieDataSet(entries, "Income vs Expense").apply {
+                colors = listOf(Color.GREEN, Color.RED)
+                valueTextSize = 16f
+                valueTextColor = Color.WHITE
+            }
+
+            pieChart.apply {
+                data = PieData(dataSet)
+                animateY(1000)
+                invalidate()
+            }
+        } catch (e: Exception) {
+            Log.e("ChartsActivity", "Error showing pie chart: ${e.message}", e)
+        }
+    }
+
+    private fun showBarChart(transactions: List<Transaction>) {
+        try {
+            val categoryTotals = transactions
+                .filter { it.type == "Expense" }
+                .groupBy { it.category }
+                .mapValues { entry -> entry.value.sumOf { it.amount.toDouble() } }
+
+            val entries = categoryTotals.entries.mapIndexed { index, entry ->
+                BarEntry(index.toFloat(), entry.value.toFloat())
+            }
+
+            val dataSet = BarDataSet(entries, "Expenses by Category").apply {
+                colors = ColorTemplate.MATERIAL_COLORS.toList()
+                valueTextSize = 12f
+                valueTextColor = Color.BLACK
+            }
+
+            val labels = categoryTotals.keys.toList()
+
+            barChart.apply {
+                data = BarData(dataSet)
+                xAxis.valueFormatter = IndexAxisValueFormatter(labels)
+                animateY(1000)
+                invalidate()
+            }
+        } catch (e: Exception) {
+            Log.e("ChartsActivity", "Error showing bar chart: ${e.message}", e)
+        }
+    }
+
+    private fun showLineChart(transactions: List<Transaction>) {
+        try {
+            val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            val outputDateFormat = SimpleDateFormat("MMM dd", Locale.getDefault())
+
+            val groupedByDate = transactions.groupBy {
+                try {
+                    val date = dateFormat.parse(it.date)
+                    outputDateFormat.format(date ?: Date())
+                } catch (e: Exception) {
+                    Log.e("ChartsActivity", "Error parsing date: ${it.date}", e)
+                    outputDateFormat.format(Date())
+                }
+            }
+
+            val sortedDates = groupedByDate.keys.sorted()
+            val entries = sortedDates.mapIndexed { index, date ->
+                val totalAmount = groupedByDate[date]?.sumOf { it.amount.toDouble() } ?: 0.0
+                Entry(index.toFloat(), totalAmount.toFloat())
+            }
+
+            val lineDataSet = LineDataSet(entries, "Daily Transactions").apply {
+                color = Color.BLUE
+                valueTextSize = 12f
+                setDrawCircles(true)
+                circleRadius = 4f
+                setDrawValues(false)
+                lineWidth = 2f
+            }
+
+            lineChart.apply {
+                data = LineData(lineDataSet)
+                xAxis.valueFormatter = IndexAxisValueFormatter(sortedDates)
+                animateX(1000)
+                invalidate()
+            }
+        } catch (e: Exception) {
+            Log.e("ChartsActivity", "Error showing line chart: ${e.message}", e)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        loadAndDisplayData()
     }
 }

@@ -6,9 +6,13 @@ import android.os.Bundle
 import android.widget.*
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.example.fitnancetracker.model.Transaction
+import com.example.fitnancetracker.utils.NotificationHelper
 import com.example.fitnancetracker.viewmodel.TransactionViewModel
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import java.util.*
 
 class AddTransactionActivity : AppCompatActivity() {
@@ -134,8 +138,54 @@ class AddTransactionActivity : AppCompatActivity() {
             transactionType
         )
 
-        viewModel.insert(newTransaction)
-        Toast.makeText(this, "Transaction Saved!", Toast.LENGTH_SHORT).show()
-        finish()
+        lifecycleScope.launch {
+            viewModel.insert(newTransaction)
+            
+            // If it's an expense, check budget status
+            if (!isIncome) {
+                val currentMonth = Calendar.getInstance().get(Calendar.MONTH) + 1
+                val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+                
+                val monthlyExpenses = viewModel.getTransactionsByType("Expense").first()
+                    .filter { transaction ->
+                        try {
+                            val parts = transaction.date.split("/")
+                            if (parts.size == 3) {
+                                val transactionMonth = parts[1].toInt()
+                                val transactionYear = parts[2].toInt()
+                                transactionMonth == currentMonth && transactionYear == currentYear
+                            } else false
+                        } catch (e: Exception) {
+                            false
+                        }
+                    }
+                    .sumOf { it.amount.toDouble() }.toFloat()
+                
+                val budget = viewModel.getMonthlyBudget().first() ?: 0f
+                
+                if (budget > 0) {
+                    val usagePercent = ((monthlyExpenses / budget) * 100).toInt()
+                    when {
+                        monthlyExpenses > budget -> {
+                            NotificationHelper.showNotification(
+                                this@AddTransactionActivity,
+                                "Budget Exceeded!",
+                                "You've exceeded your monthly budget by Rs. %.2f".format(monthlyExpenses - budget)
+                            )
+                        }
+                        usagePercent >= 80 -> {
+                            NotificationHelper.showNotification(
+                                this@AddTransactionActivity,
+                                "Budget Warning",
+                                "You've reached ${usagePercent}% of your monthly budget"
+                            )
+                        }
+                    }
+                }
+            }
+            
+            Toast.makeText(this@AddTransactionActivity, "Transaction Saved!", Toast.LENGTH_SHORT).show()
+            finish()
+        }
     }
 }

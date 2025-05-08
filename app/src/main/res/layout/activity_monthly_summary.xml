@@ -17,6 +17,40 @@
             android:orientation="vertical"
             android:padding="16dp">
 
+            <!-- Month Navigation -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="16dp">
+
+                <ImageButton
+                    android:id="@+id/btnPreviousMonth"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@android:drawable/ic_media_previous"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Previous Month"/>
+
+                <TextView
+                    android:id="@+id/tvCurrentMonth"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="18sp"
+                    android:textColor="#0288D1"
+                    android:textStyle="bold"
+                    android:layout_marginHorizontal="16dp"/>
+
+                <ImageButton
+                    android:id="@+id/btnNextMonth"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@android:drawable/ic_media_next"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Next Month"/>
+            </LinearLayout>
+
             <TextView
                 android:id="@+id/tvTotalIncome"
                 android:layout_width="match_parent"

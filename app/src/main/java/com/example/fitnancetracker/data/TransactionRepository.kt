@@ -1,5 +1,6 @@
 package com.example.fitnancetracker.data
 
+import com.example.fitnancetracker.model.Budget
 import com.example.fitnancetracker.model.Transaction
 import kotlinx.coroutines.flow.Flow
 
@@ -24,5 +25,18 @@ class TransactionRepository(private val transactionDao: TransactionDao) {
 
     fun getTransactionsForMonth(monthYear: String): Flow<List<Transaction>> {
         return transactionDao.getTransactionsForMonth(monthYear)
+    }
+
+    // Budget operations
+    fun getBudget(): Flow<Budget?> {
+        return transactionDao.getBudget()
+    }
+
+    suspend fun insertBudget(budget: Budget) {
+        transactionDao.insertBudget(budget)
+    }
+
+    suspend fun updateBudget(budget: Budget) {
+        transactionDao.updateBudget(budget)
     }
 } 
