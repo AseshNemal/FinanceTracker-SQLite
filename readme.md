@@ -36,4 +36,4 @@ A simple yet powerful Kotlin-based Android app to manage your daily finances. Tr
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/finance-tracker-android.git
+   git clone https://github.com/AseshNemal/finance-tracker-android.git
