@@ -1,30 +1,63 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("kotlin-kapt")
 }
 
+// Load keystore properties
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
+
 android {
-    namespace = "com.example.fitnancetracker"
+    namespace = "com.aseshnemal.financetracker"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.example.fitnancetracker"
-        minSdk = 33
-        targetSdk = 34
+        applicationId = "com.aseshnemal.financetracker"
+        minSdk = 26  // Increased to support adaptive icons
+        targetSdk = 35  // Updated to match compileSdk
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("../finance-tracker-release-key.jks")
+            storePassword = keystoreProperties["KEYSTORE_PASSWORD"] as String? ?: ""
+            keyAlias = "finance-tracker-key"
+            keyPassword = keystoreProperties["KEY_PASSWORD"] as String? ?: ""
+        }
+    }
+
     buildTypes {
+        debug {
+            isDebuggable = true
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+        }
+        
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
+        }
+    }
+
+    bundle {
+        language {
+            enableSplit = false  // Keep all languages in base module for now
         }
     }
     compileOptions {

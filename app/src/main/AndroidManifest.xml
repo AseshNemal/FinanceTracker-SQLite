@@ -2,7 +2,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Required permissions -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" 
+        android:maxSdkVersion="28" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" 
+        android:maxSdkVersion="32" />
+    
+    <!-- Features used by the app -->
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="true" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -12,26 +23,72 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.FitnanceTracker"
-        tools:targetApi="31">
+        android:requestLegacyExternalStorage="true"
+        tools:targetApi="34">
+        
+        <!-- Declare that this app does not use advertising ID -->
+        <meta-data 
+            android:name="com.google.android.gms.ads.AD_MANAGER_APP" 
+            android:value="false" />
+        
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:launchMode="singleTop"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
-
         </activity>
-        <activity android:name=".AddTransactionActivity" />
-        <activity android:name=".ViewTransactionsActivity" />
-        <activity android:name=".BudgetActivity"/>
-        <activity android:name=".EditTransactionActivity"/>
-        <activity android:name=".ChartsActivity"/>
-        <activity android:name=".NotificationsActivity"/>
-        <activity android:name=".MonthlySummaryActivity"/>
-        <activity android:name=".ExportImportActivity"/>
+        
+        <activity 
+            android:name=".AddTransactionActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait" />
+            
+        <activity 
+            android:name=".ViewTransactionsActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait" />
+            
+        <activity 
+            android:name=".BudgetActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait" />
+            
+        <activity 
+            android:name=".EditTransactionActivity"
+            android:exported="false"
+            android:parentActivityName=".ViewTransactionsActivity"
+            android:screenOrientation="portrait" />
+            
+        <activity 
+            android:name=".ChartsActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait" />
+            
+        <activity 
+            android:name=".NotificationsActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait" />
+            
+        <activity 
+            android:name=".MonthlySummaryActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait" />
+            
+        <activity 
+            android:name=".ExportImportActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>
