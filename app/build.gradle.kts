@@ -70,24 +70,37 @@ android {
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.room.common.jvm)
+    
+    // Room database
     implementation("androidx.room:room-runtime:2.7.0")
     implementation("androidx.room:room-ktx:2.7.0")
+    kapt("androidx.room:room-compiler:2.7.0")
+    
+    // Lifecycle components
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    kapt("androidx.room:room-compiler:2.7.0")
+    
+    // Material Design 3 and UI components
+    implementation("com.google.android.material:material:1.12.0")
+    implementation("androidx.coordinatorlayout:coordinatorlayout:1.2.0")
+    
+    // Charts
+    implementation(libs.mpandroidchart)
+    
+    // JSON handling
+    implementation("com.google.code.gson:gson:2.10.1")
+    
+    // Kotlin
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.0")
+    
+    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    implementation("com.google.code.gson:gson:2.10.1")
-    implementation (libs.mpandroidchart)
-    implementation ("org.jetbrains.kotlin:kotlin-stdlib:1.9.0")
-    implementation ("com.google.android.material:material:1.11.0")
-
 }

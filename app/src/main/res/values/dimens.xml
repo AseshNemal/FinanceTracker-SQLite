@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Material 3 Spacing System -->
+    <dimen name="spacing_xs">4dp</dimen>
+    <dimen name="spacing_sm">8dp</dimen>
+    <dimen name="spacing_md">16dp</dimen>
+    <dimen name="spacing_lg">24dp</dimen>
+    <dimen name="spacing_xl">32dp</dimen>
+    <dimen name="spacing_xxl">48dp</dimen>
+    
+    <!-- Material 3 Corner Radius -->
+    <dimen name="corner_radius_xs">4dp</dimen>
+    <dimen name="corner_radius_sm">8dp</dimen>
+    <dimen name="corner_radius_md">12dp</dimen>
+    <dimen name="corner_radius_lg">16dp</dimen>
+    <dimen name="corner_radius_xl">20dp</dimen>
+    <dimen name="corner_radius_xxl">28dp</dimen>
+    
+    <!-- Material 3 Elevation -->
+    <dimen name="elevation_level0">0dp</dimen>
+    <dimen name="elevation_level1">1dp</dimen>
+    <dimen name="elevation_level2">3dp</dimen>
+    <dimen name="elevation_level3">6dp</dimen>
+    <dimen name="elevation_level4">8dp</dimen>
+    <dimen name="elevation_level5">12dp</dimen>
+    
+    <!-- Component Specific Dimensions -->
+    <dimen name="card_margin">@dimen/spacing_md</dimen>
+    <dimen name="card_padding">@dimen/spacing_md</dimen>
+    <dimen name="card_corner_radius">@dimen/corner_radius_lg</dimen>
+    <dimen name="card_elevation">@dimen/elevation_level2</dimen>
+    
+    <!-- Button Dimensions -->
+    <dimen name="button_height">48dp</dimen>
+    <dimen name="button_corner_radius">@dimen/corner_radius_lg</dimen>
+    <dimen name="fab_margin">@dimen/spacing_md</dimen>
+    
+    <!-- Text Field Dimensions -->
+    <dimen name="text_field_corner_radius">@dimen/corner_radius_sm</dimen>
+    <dimen name="text_field_margin">@dimen/spacing_sm</dimen>
+    
+    <!-- Icon Dimensions -->
+    <dimen name="icon_size_small">16dp</dimen>
+    <dimen name="icon_size_medium">24dp</dimen>
+    <dimen name="icon_size_large">32dp</dimen>
+    <dimen name="icon_size_xlarge">48dp</dimen>
+    
+    <!-- Touch Target -->
+    <dimen name="touch_target_size">48dp</dimen>
+    
+    <!-- Bottom Navigation -->
+    <dimen name="bottom_nav_height">80dp</dimen>
+    
+    <!-- App Bar -->
+    <dimen name="app_bar_height">64dp</dimen>
+    
+    <!-- List Item -->
+    <dimen name="list_item_height">72dp</dimen>
+    <dimen name="list_item_padding_horizontal">@dimen/spacing_md</dimen>
+    <dimen name="list_item_padding_vertical">@dimen/spacing_sm</dimen>
+    
+    <!-- Financial Summary Card -->
+    <dimen name="summary_card_min_height">120dp</dimen>
+    <dimen name="summary_icon_size">@dimen/icon_size_large</dimen>
+    
+    <!-- Progress Bar -->
+    <dimen name="progress_bar_height">8dp</dimen>
+    <dimen name="progress_bar_corner_radius">@dimen/corner_radius_sm</dimen>
+</resources>
