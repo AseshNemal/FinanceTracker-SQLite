@@ -56,7 +56,7 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val incomeTransactions = viewModel.getTransactionsByType("Income").first()
             val expenseTransactions = viewModel.getTransactionsByType("Expense").first()
-            val budget = viewModel.getMonthlyBudget().first() ?: 1f // avoid division by zero
+            val budget = viewModel.getMonthlyBudget().first() // avoid division by zero
             
             val income = incomeTransactions.sumOf { it.amount.toDouble() }.toFloat()
             val expense = expenseTransactions.sumOf { it.amount.toDouble() }.toFloat()
@@ -104,7 +104,7 @@ class MainActivity : AppCompatActivity() {
             val income = monthlyTransactions.filter { it.type == "Income" }.sumOf { it.amount.toDouble() }.toFloat()
             val expense = monthlyTransactions.filter { it.type == "Expense" }.sumOf { it.amount.toDouble() }.toFloat()
             val savings = income - expense
-            val budget = viewModel.getMonthlyBudget().first() ?: 0f
+            val budget = viewModel.getMonthlyBudget().first()
             val usagePercent = if (budget > 0) ((expense / budget) * 100).toInt() else 0
 
             // Create summary card
@@ -260,7 +260,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 .sumOf { it.amount.toDouble() }.toFloat()
             
-            val budget = viewModel.getMonthlyBudget().first() ?: 0f
+            val budget = viewModel.getMonthlyBudget().first()
             
             if (budget > 0 && monthlyExpenses > budget) {
                 NotificationHelper.showNotification(

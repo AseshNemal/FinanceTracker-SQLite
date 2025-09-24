@@ -161,7 +161,7 @@ class AddTransactionActivity : AppCompatActivity() {
                     }
                     .sumOf { it.amount.toDouble() }.toFloat()
                 
-                val budget = viewModel.getMonthlyBudget().first() ?: 0f
+                val budget = viewModel.getMonthlyBudget().first()
                 
                 if (budget > 0) {
                     val usagePercent = ((monthlyExpenses / budget) * 100).toInt()

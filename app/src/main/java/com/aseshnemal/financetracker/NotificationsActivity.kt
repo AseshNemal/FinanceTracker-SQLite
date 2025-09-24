@@ -55,7 +55,7 @@ class NotificationsActivity : AppCompatActivity() {
         lifecycleScope.launch {
             try {
                 val transactions = viewModel.allTransactions.first()
-                val budget = viewModel.getMonthlyBudget().first() ?: 0f
+                val budget = viewModel.getMonthlyBudget().first()
                 
                 val notifications = mutableListOf<Notification>()
                 val currentMonth = Calendar.getInstance().get(Calendar.MONTH) + 1

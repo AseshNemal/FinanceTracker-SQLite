@@ -31,6 +31,7 @@
                 android:textAppearance="?attr/textAppearanceHeadlineMedium"
                 android:textColor="?attr/colorPrimary"
                 android:gravity="center"
+                android:layout_marginTop="29dp"
                 android:layout_marginBottom="@dimen/spacing_lg" />
 
             <!-- Monthly Summary Container -->
@@ -317,17 +318,6 @@
         app:labelVisibilityMode="labeled" />
 
     <!-- Floating Action Button -->
-    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
-        android:id="@+id/fabAddTransaction"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
-        android:layout_marginBottom="88dp"
-        android:text="Add Transaction"
-        app:icon="@drawable/ic_expense"
-        app:backgroundTint="?attr/colorPrimary"
-        app:iconTint="?attr/colorOnPrimary"
-        android:textColor="?attr/colorOnPrimary" />
+
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

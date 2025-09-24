@@ -78,7 +78,7 @@ class ChartsActivity : AppCompatActivity() {
             description.isEnabled = false
             isDrawHoleEnabled = true
             setHoleColor(Color.WHITE)
-            setTransparentCircleRadius(61f)
+            transparentCircleRadius = 61f
             setDrawCenterText(true)
             rotationAngle = 0f
             isRotationEnabled = true

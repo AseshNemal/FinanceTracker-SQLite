@@ -113,7 +113,7 @@ class MonthlySummaryActivity : AppCompatActivity() {
             description.isEnabled = false
             isDrawHoleEnabled = true
             setHoleColor(Color.WHITE)
-            setTransparentCircleRadius(61f)
+            transparentCircleRadius = 61f
             setDrawCenterText(true)
             rotationAngle = 0f
             isRotationEnabled = true
@@ -178,7 +178,7 @@ class MonthlySummaryActivity : AppCompatActivity() {
                 updatePieChart(categorySummaries)
 
                 // Update budget usage
-                val budget = viewModel.getMonthlyBudget().first() ?: 0f
+                val budget = viewModel.getMonthlyBudget().first()
                 val usagePercent = if (budget > 0) ((totalExpense / budget) * 100).toInt() else 0
                 tvBudgetUsage.text = "Budget Usage: $usagePercent%"
             } catch (e: Exception) {
