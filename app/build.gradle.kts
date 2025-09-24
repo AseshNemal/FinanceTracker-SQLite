@@ -22,8 +22,8 @@ android {
         applicationId = "com.aseshnemal.financetracker"
         minSdk = 26  // Increased to support adaptive icons
         targetSdk = 35  // Updated to match compileSdk
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 3
+        versionName = "1.2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
